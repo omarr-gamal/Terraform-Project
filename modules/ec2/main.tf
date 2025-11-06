@@ -10,7 +10,7 @@ data "aws_ami" "selected" {
 resource "aws_security_group" "inst_sg" {
   name = "${var.name_prefix}-sg"
   vpc_id = var.vpc_id != null ? var.vpc_id : null
-  # vpc_id will be null if not provided; root passes subnet's VPC via data, but to keep simple user must ensure SG allowed later
+  
   ingress {
     from_port = 22
     to_port = 22
@@ -42,15 +42,15 @@ resource "aws_instance" "this" {
   tags = { Name = "${var.name_prefix}-${count.index + 1}" }
 
   provisioner "file" {
-    # copy files only if any
-    count = length(var.copy_files) > 0 ? 1 : 0
-    source = join(",", var.copy_files) # terraform file provisioner does not support directories easily; user adjust
-    destination = "/home/ec2-user/app_files"
+    for_each = { for f in var.copy_files : f.source => f }
+    source      = each.value.source
+    destination = each.value.destination
+
     connection {
-      type = "ssh"
-      user = "ec2-user"
+      type        = "ssh"
+      user        = "ec2-user"
       private_key = file(var.ssh_private_key_path)
-      host = self.public_ip
+      host        = self.public_ip
     }
   }
 

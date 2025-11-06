@@ -5,6 +5,17 @@ module "vpc" {
   private_azs = var.private_azs
 }
 
+locals {
+  nginx_conf_content = templatefile("${path.root}/nginx.conf.tpl", {
+    internal_alb_dns = module.alb_internal.lb_dns
+  })
+}
+
+resource "local_file" "rendered_nginx_conf" {
+  content  = local.nginx_conf_content
+  filename = "${path.root}/rendered-nginx.conf"
+}
+
 # public proxies (2)
 module "public_ec2" {
   source = "./modules/ec2"
@@ -15,15 +26,20 @@ module "public_ec2" {
   instance_type = "t3.micro"
   key_name = aws_key_pair.deployer.key_name
   ssh_private_key_path = var.ssh_private_key_path
+
   remote_commands = [
     "sudo yum update -y",
     "sudo amazon-linux-extras install -y nginx1",
     "sudo systemctl enable nginx",
     "sudo systemctl start nginx",
-    # reverse proxy config would be placed by further remote-exec or file provisioner
   ]
-  # do not upload app files for proxies
-  copy_files = []
+
+  copy_files = [ 
+    {
+      source      = "${path.root}/rendered-nginx.conf"
+      destination = "/tmp/nginx.conf"
+    },
+  ]
 }
 
 # private backends (2)
@@ -43,7 +59,12 @@ module "private_ec2" {
     "sudo firewall-cmd --permanent --add-port=5000/tcp || true",
     "sudo firewall-cmd --reload || true",
   ]
-  copy_files = [ var.backend_app_local_path ]
+  copy_files = [ 
+    {
+      source      = var.backend_app_local_path
+      destination = "/home/ec2-user/app_files"
+    },
+  ]
 }
 
 resource "aws_key_pair" "deployer" {
