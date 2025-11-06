@@ -1,0 +1,5 @@
+aws_region = "us-east-1"
+ssh_pub_key = "ssh-rsa AAAA.... user@host"
+ssh_private_key_path = "~/.ssh/id_rsa"
+backend_app_local_path = "./app"
+
