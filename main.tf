@@ -52,17 +52,21 @@ module "private_ec2" {
   instance_type = "t3.micro"
   key_name = aws_key_pair.deployer.key_name
   ssh_private_key_path = var.ssh_private_key_path
+
   remote_commands = [
     "sudo yum update -y",
     "sudo yum install -y python3 pip",
     "pip3 install flask",
     "sudo firewall-cmd --permanent --add-port=5000/tcp || true",
     "sudo firewall-cmd --reload || true",
+    "cd app",
+    "python app.py",
   ]
+
   copy_files = [ 
     {
       source      = var.backend_app_local_path
-      destination = "/home/ec2-user/app_files"
+      destination = "/home/ec2-user/app"
     },
   ]
 }
