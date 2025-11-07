@@ -22,7 +22,7 @@ module "public_ec2" {
   name_prefix = "proxy"
   subnet_ids = module.vpc.public_subnets
   instance_count = 2
-  ami_filter = { name = "amzn2-ami-hvm-*-x86_64-gp2", owners = ["amazon"] }
+  ami_filter = { name = "amzn2-ami-hvm-*-x86_64-gp2", owner = "amazon" }
   instance_type = "t3.micro"
   key_name = aws_key_pair.deployer.key_name
   ssh_private_key_path = var.ssh_private_key_path
@@ -48,7 +48,7 @@ module "private_ec2" {
   name_prefix = "backend"
   subnet_ids = module.vpc.private_subnets
   instance_count = 2
-  ami_filter = { name = "amzn2-ami-hvm-*-x86_64-gp2", owners = ["amazon"] }
+  ami_filter = { name = "amzn2-ami-hvm-*-x86_64-gp2", owner = "amazon" }
   instance_type = "t3.micro"
   key_name = aws_key_pair.deployer.key_name
   ssh_private_key_path = var.ssh_private_key_path

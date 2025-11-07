@@ -5,7 +5,7 @@ variable "ami_filter" {
     type = map(any) 
     default = {
         name   = "amzn2-ami-hvm-*-x86_64-gp2"
-        owners = ["amazon"]
+        owner  = "amazon"
     }
 }
 variable "instance_type" { type = string }

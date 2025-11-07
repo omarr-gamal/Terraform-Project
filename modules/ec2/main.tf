@@ -4,7 +4,7 @@ data "aws_ami" "selected" {
     name = "name"
     values = [lookup(var.ami_filter, "name", "*")]
   }
-  owners = lookup(var.ami_filter, "owners", ["amazon"])
+  owners = [lookup(var.ami_filter, "owner", "amazon")]
 }
 
 resource "aws_security_group" "inst_sg" {
