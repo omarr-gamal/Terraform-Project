@@ -20,6 +20,7 @@ resource "local_file" "rendered_nginx_conf" {
 module "public_ec2" {
   source = "./modules/ec2"
   name_prefix = "proxy"
+  vpc_id = module.vpc.vpc_id
   subnet_ids = module.vpc.public_subnets
   instance_count = 2
   ami_filter = { name = "amzn2-ami-hvm-*-x86_64-gp2", owner = "amazon" }
@@ -46,6 +47,7 @@ module "public_ec2" {
 module "private_ec2" {
   source = "./modules/ec2"
   name_prefix = "backend"
+  vpc_id = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
   instance_count = 2
   ami_filter = { name = "amzn2-ami-hvm-*-x86_64-gp2", owner = "amazon" }

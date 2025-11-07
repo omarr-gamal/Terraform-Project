@@ -51,7 +51,7 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = element(values(aws_subnet.public).*id, 0)
+  subnet_id = element([for s in aws_subnet.public : s.id], 0)
   tags = { Name = "tf-nat" }
 }
 
