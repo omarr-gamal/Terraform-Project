@@ -1,0 +1,6 @@
+public_alb_dns: public-alb-305951401.us-east-1.elb.amazonaws.com
+internal_alb_dns: internal-int-alb-886518986.us-east-1.elb.amazonaws.com
+public_proxy_ip_1: 18.209.159.44
+public_proxy_ip_2: 35.175.131.104
+private_backend_ip_1: 10.0.1.166
+private_backend_ip_2: 10.0.3.178
