@@ -76,7 +76,9 @@ module "private_ec2" {
     "tar -xzf /home/ec2-user/backend_app.tar.gz",
     "sudo firewall-cmd --permanent --add-port=5000/tcp || true",
     "sudo firewall-cmd --reload || true",
-    "nohup python3 /home/ec2-user/app/app.py &",
+    "sudo loginctl enable-linger ec2-user",
+    "nohup setsid /usr/bin/python3 /home/ec2-user/app/app.py > /home/ec2-user/app/flask.log 2>&1 &",
+    "sleep 2",
   ]
 
   # Wait for archive to exist
