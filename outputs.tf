@@ -5,7 +5,6 @@ output "internal_alb_dns" {
   value = module.alb_internal.lb_dns
 }
 
-# map individual IPs for local-exec consumption
 output "public_proxy_ip_1" {
   value = element(module.public_ec2.public_ips, 0)
 }
