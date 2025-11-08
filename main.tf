@@ -28,6 +28,8 @@ module "public_ec2" {
   key_name = aws_key_pair.deployer.key_name
   ssh_private_key_path = var.ssh_private_key_path
 
+  depends_on = [local_file.rendered_nginx_conf]
+
   remote_commands = [
     "sudo yum update -y",
     "sudo amazon-linux-extras install -y nginx1",
@@ -35,12 +37,23 @@ module "public_ec2" {
     "sudo systemctl start nginx",
   ]
 
-  copy_files = [ 
-    {
-      source      = "${path.root}/rendered-nginx.conf"
-      destination = "/tmp/nginx.conf"
-    },
-  ]
+  copy_file = {
+    source      = "${path.root}/rendered-nginx.conf"
+    destination = "/tmp/nginx.conf"
+  }
+}
+
+
+# Create a local archive before calling the module
+locals {
+  backend_archive = "/tmp/backend_app.tar.gz"
+}
+
+# Archive the backend directory locally
+resource "null_resource" "archive_backend" {
+  provisioner "local-exec" {
+    command = "tar -czf ${local.backend_archive} -C $(dirname ${var.backend_app_local_path}) $(basename ${var.backend_app_local_path})"
+  }
 }
 
 # private backends (2)
@@ -59,18 +72,20 @@ module "private_ec2" {
     "sudo yum update -y",
     "sudo yum install -y python3 pip",
     "pip3 install flask",
+    "mkdir -p /home/ec2-user/app",
+    "tar -xzf /home/ec2-user/backend_app.tar.gz",
     "sudo firewall-cmd --permanent --add-port=5000/tcp || true",
     "sudo firewall-cmd --reload || true",
-    "cd app",
-    "python app.py",
+    "nohup python3 /home/ec2-user/app/app.py &",
   ]
 
-  copy_files = [ 
-    {
-      source      = var.backend_app_local_path
-      destination = "/home/ec2-user/app"
-    },
-  ]
+  # Wait for archive to exist
+  depends_on = [null_resource.archive_backend]
+
+  copy_file = {
+    source      = local.backend_archive
+    destination = "/home/ec2-user/backend_app.tar.gz"
+  }
 }
 
 resource "aws_key_pair" "deployer" {
@@ -82,6 +97,7 @@ resource "aws_key_pair" "deployer" {
 module "alb_public" {
   source = "./modules/alb"
   name = "public-alb"
+  vpc_id = module.vpc.vpc_id
   subnets = module.vpc.public_subnets
   internal = false
   target_instance_ids = module.public_ec2.instance_ids
@@ -90,7 +106,8 @@ module "alb_public" {
 
 module "alb_internal" {
   source = "./modules/alb"
-  name = "internal-alb"
+  name = "int-alb"
+  vpc_id = module.vpc.vpc_id
   subnets = module.vpc.private_subnets
   internal = true
   target_instance_ids = module.private_ec2.instance_ids
