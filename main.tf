@@ -33,6 +33,8 @@ module "public_ec2" {
   remote_commands = [
     "sudo yum update -y",
     "sudo amazon-linux-extras install -y nginx1",
+    "sudo cp /tmp/nginx.conf /etc/nginx/nginx.conf",
+    "sudo nginx -t",
     "sudo systemctl enable nginx",
     "sudo systemctl start nginx",
   ]
@@ -44,19 +46,16 @@ module "public_ec2" {
 }
 
 
-# Create a local archive before calling the module
 locals {
   backend_archive = "/tmp/backend_app.tar.gz"
 }
 
-# Archive the backend directory locally
 resource "null_resource" "archive_backend" {
   provisioner "local-exec" {
     command = "tar -czf ${local.backend_archive} -C $(dirname ${var.backend_app_local_path}) $(basename ${var.backend_app_local_path})"
   }
 }
 
-# private backends (2)
 module "private_ec2" {
   source = "./modules/ec2"
   name_prefix = "backend"
@@ -125,10 +124,12 @@ resource "null_resource" "write_ips" {
 
   provisioner "local-exec" {
     command = <<EOT
-echo "public-ip1 $(terraform output -raw public_proxy_ip_1 2>/dev/null || true)" > all-ips.txt
-echo "public-ip2 $(terraform output -raw public_proxy_ip_2 2>/dev/null || true)" >> all-ips.txt
-echo "private-ip1 $(terraform output -raw private_backend_ip_1 2>/dev/null || true)" >> all-ips.txt
-echo "private-ip2 $(terraform output -raw private_backend_ip_2 2>/dev/null || true)" >> all-ips.txt
+echo "public_alb_dns: ${module.alb_public.lb_dns}" > all-ips.txt
+echo "internal_alb_dns: ${module.alb_internal.lb_dns}" >> all-ips.txt
+echo "public_proxy_ip_1: ${element(module.public_ec2.public_ips, 0)}" >> all-ips.txt
+echo "public_proxy_ip_2: ${element(module.public_ec2.public_ips, 1)}" >> all-ips.txt
+echo "private_backend_ip_1: ${element(module.private_ec2.private_ips, 0)}" >> all-ips.txt
+echo "private_backend_ip_2: ${element(module.private_ec2.private_ips, 1)}" >> all-ips.txt
 EOT
   }
 }
