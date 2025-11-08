@@ -23,6 +23,12 @@ resource "aws_security_group" "inst_sg" {
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port = 5000
+    to_port = 5000
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port = 0
     to_port = 0
@@ -42,9 +48,8 @@ resource "aws_instance" "this" {
   tags = { Name = "${var.name_prefix}-${count.index + 1}" }
 
   provisioner "file" {
-    for_each = { for f in var.copy_files : f.source => f }
-    source      = each.value.source
-    destination = each.value.destination
+    source      = var.copy_file.source
+    destination = var.copy_file.destination
 
     connection {
       type        = "ssh"

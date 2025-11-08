@@ -15,11 +15,11 @@ variable "instance_type" { type = string }
 variable "key_name" { type = string }
 variable "ssh_private_key_path" { type = string }
 variable "remote_commands" { type = list(string) }
-variable "copy_files" {
-  description = "List of files to copy"
-  type = list(object({
+variable "copy_file" {
+  description = "Optional file to copy"
+  type = object({
     source      = string
     destination = string
-  }))
-  default = []
+  })
+  default = null
 }
