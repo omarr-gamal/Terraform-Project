@@ -64,6 +64,8 @@ resource "aws_route_table" "private" {
   tags = { Name = "private-rt" }
 }
 
+# TODO: after the instances are up and running, modify the 
+# route table association to make the private subnet private
 resource "aws_route_table_association" "private_assoc" {
   for_each = aws_subnet.private
   subnet_id = each.value.id

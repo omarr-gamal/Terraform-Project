@@ -23,6 +23,8 @@ resource "aws_security_group" "inst_sg" {
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # TODO: configure flask to run on port 80
+  # or get security group ports from variable
   ingress {
     from_port = 5000
     to_port = 5000
