@@ -125,6 +125,3 @@ terraform destroy
 * Terraform variables should be configured before `terraform apply`.
 * IP addresses and DNS names of EC2 instances and ALBs are saved in `all-ips.txt`.
 
-## Author
-
-* Omar Abdelgawad
